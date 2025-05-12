@@ -1,5 +1,6 @@
 package com.example.catalist.presentation.screens.list
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,7 +30,8 @@ data class ListScreenState(
 @Composable
 fun ListScreen(
     modifier: Modifier = Modifier,
-    state: ListScreenState
+    state: ListScreenState,
+    onItemClicked: (String) -> Unit
 ) {
 
     Column(
@@ -58,10 +60,12 @@ fun ListScreen(
                 modifier = Modifier.fillMaxSize()
             ) {
 
-                items(state.items) {
+                items(state.items) { catListItem ->
                     CatListItem(
-                        state = it,
-                        modifier = Modifier.fillMaxWidth()
+                        state = catListItem,
+                        modifier = Modifier.fillMaxWidth().clickable {
+                            onItemClicked(catListItem.id)
+                        }
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     HorizontalDivider()

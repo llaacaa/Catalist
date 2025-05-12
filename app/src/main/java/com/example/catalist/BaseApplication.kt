@@ -3,6 +3,7 @@ package com.example.catalist
 import android.app.Application
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.catalist.data.CatRepositoryImpl
+import com.example.catalist.data.KtorFactory
 import com.example.catalist.domain.CatRepository
 import com.example.catalist.presentation.screens.list.ListViewModel
 import org.koin.android.ext.koin.androidContext
@@ -25,7 +26,9 @@ class BaseApplication: Application() {
 
 val appModule = module {
     single<CatRepository> {
-        CatRepositoryImpl()
+        CatRepositoryImpl(
+            KtorFactory.build()
+        )
     }
     viewModel {
         ListViewModel(

@@ -1,11 +1,14 @@
 package com.example.catalist.domain
 
-import com.example.catalist.presentation.screens.list.CatListItemState
+import com.example.catalist.data.model.CatListResponseDto
+import com.example.catalist.data.model.CatListResponseItemDto
 
 interface CatRepository {
 
-    suspend fun getAllCats(): Result<List<CatListItemState>>
+    suspend fun getAllBreeds(): Result<List<CatListResponseItemDto>>
 
-    suspend fun getAllCatsBy(race: String): Result<List<CatListItemState>>
+    suspend fun searchBreeds(query: String): Result<List<CatListResponseItemDto>>
+
+    suspend fun getBreedBy(id: String): Result<CatListResponseItemDto>
 
 }

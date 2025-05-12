@@ -2,51 +2,61 @@ package com.example.catalist.presentation.screens.list
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.catalist.data.model.CatListResponseItemDto
 import com.example.catalist.domain.CatRepository
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 class ListViewModel(
-    val repo: CatRepository
-): ViewModel() {
-
-    val mockData = buildList {
-        repeat(10) {
-            add(
-                CatListItemState(
-                    race = "Persijka",
-                    alternativeRaces = listOf("cao", "sta ima"),
-                    description = "ovo je macka ona ide na 4 noge nmp iskreno bla bla bla ima oci i usi lovi miseve",
-                    attributes = listOf("playful", "angru", "mad")
-                )
-            )
-        }
-    }
+    private val repo: CatRepository
+) : ViewModel() {
 
     private val _state = MutableStateFlow(ListScreenState())
     val state = _state.asStateFlow()
 
+    private val _channel = Channel<Unit>()
+    val errorChannel = _channel.receiveAsFlow()
+
     init {
-       viewModelScope.launch {
-           _state.value = _state.value.copy(
-               isLoading = true
-           )
+        viewModelScope.launch {
+            setLoading(true)
+            val response = repo.getAllBreeds()
 
-           delay(1500L)
-           repo.getAllCats()
-
-           _state.value = _state.value.copy(
-               isLoading = false
-           )
-
-           _state.update {
-               it.copy(
-                   items = mockData
-               )
-           }
-       }
+            response.fold(
+                onSuccess = {
+                    _state.value = _state.value.copy(
+                        items = it.map { it.toUiModel() }
+                    )
+                },
+                onFailure = {
+                    it.cause
+                    _channel.send(Unit)
+                }
+            )
+            setLoading(false)
+        }
     }
+
+    private fun setLoading(loading: Boolean) {
+        _state.value = _state.value.copy(
+            isLoading = loading
+        )
+    }
+
+}
+
+
+fun CatListResponseItemDto.toUiModel(): CatListItemState {
+
+    return CatListItemState(
+        id = this.id ?: UUID.randomUUID().toString(),
+        race = name ?: "No Name",
+        alternativeRaces = alt_names ?: "",
+        description = description?.take(250) ?: "No Description",
+        temperaments = temperament?.split(",")?.take(5)?.map { it.trim() } ?: emptyList()
+    )
 }

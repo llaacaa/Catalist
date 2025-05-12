@@ -1,8 +1,9 @@
 package com.example.catalist.presentation.screens.list
 
 data class CatListItemState(
+    val id: String = "",
     val race: String = "",
-    val alternativeRaces: List<String> = emptyList(),
+    val alternativeRaces: String = "",
     val description: String = "",
-    val attributes: List<String> = emptyList()
+    val temperaments: List<String> = emptyList()
 )
