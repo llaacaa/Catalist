@@ -1,10 +1,10 @@
 package com.example.catalist
 
 import android.app.Application
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.catalist.data.CatRepositoryImpl
 import com.example.catalist.data.KtorFactory
 import com.example.catalist.domain.CatRepository
+import com.example.catalist.presentation.screens.details.DetailsViewModel
 import com.example.catalist.presentation.screens.list.ListViewModel
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
@@ -27,13 +27,23 @@ class BaseApplication: Application() {
 val appModule = module {
     single<CatRepository> {
         CatRepositoryImpl(
-            KtorFactory.build()
+            client = KtorFactory.build()
         )
     }
+
+    viewModel {
+        DetailsViewModel(
+            repo = get(),
+            savedStateHandle = get()
+        )
+    }
+
     viewModel {
         ListViewModel(
-            get()
+            repo = get()
         )
     }
+
+
 
 }

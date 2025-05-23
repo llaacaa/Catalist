@@ -1,7 +1,7 @@
 package com.example.catalist.domain
 
-import com.example.catalist.data.model.CatListResponseDto
 import com.example.catalist.data.model.CatListResponseItemDto
+import com.example.catalist.data.model.ImageResponseDtoItem
 
 interface CatRepository {
 
@@ -11,4 +11,5 @@ interface CatRepository {
 
     suspend fun getBreedBy(id: String): Result<CatListResponseItemDto>
 
+    suspend fun getCatImageById(id: String): Result<List<ImageResponseDtoItem>>
 }

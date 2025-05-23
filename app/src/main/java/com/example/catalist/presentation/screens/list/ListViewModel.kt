@@ -4,7 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.catalist.data.model.CatListResponseItemDto
 import com.example.catalist.domain.CatRepository
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -21,8 +23,15 @@ class ListViewModel(
     private val _channel = Channel<Unit>()
     val errorChannel = _channel.receiveAsFlow()
 
+    private var searchJob: Job? = null
+
     init {
-        viewModelScope.launch {
+        initData()
+    }
+
+    private fun initData() {
+        searchJob?.cancel()
+        searchJob  = viewModelScope.launch {
             setLoading(true)
             val response = repo.getAllBreeds()
 
@@ -33,12 +42,42 @@ class ListViewModel(
                     )
                 },
                 onFailure = {
-                    it.cause
                     _channel.send(Unit)
                 }
             )
             setLoading(false)
         }
+    }
+
+    fun onSearchQueryChanged(query: String) {
+        _state.value = _state.value.copy(
+            searchQuery = query
+        )
+
+        if (query.isBlank()) {
+            initData()
+            return
+        }
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch {
+            setLoading(true)
+            delay(200L)
+            val response = repo.searchBreeds(query)
+
+            response.fold(
+                onSuccess = {
+                    _state.value = _state.value.copy(
+                        items = it.map { it.toUiModel() }
+                    )
+                },
+                onFailure = {
+                    _channel.send(Unit)
+                }
+            )
+
+            setLoading(false)
+        }
+
     }
 
     private fun setLoading(loading: Boolean) {

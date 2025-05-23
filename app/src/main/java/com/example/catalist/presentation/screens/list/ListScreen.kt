@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -31,19 +30,21 @@ data class ListScreenState(
 fun ListScreen(
     modifier: Modifier = Modifier,
     state: ListScreenState,
-    onItemClicked: (String) -> Unit
+    onItemClicked: (String) -> Unit,
+    onSearchQueryChanged: (String) -> Unit,
 ) {
 
     Column(
         modifier = modifier
             .fillMaxSize()
             .padding(horizontal = 8.dp)
-
     ) {
         TextField(
+            modifier = Modifier
+                .fillMaxWidth(),
             value = state.searchQuery,
-            onValueChange = {
-
+            onValueChange = { query ->
+                onSearchQueryChanged(query)
             }
         )
 

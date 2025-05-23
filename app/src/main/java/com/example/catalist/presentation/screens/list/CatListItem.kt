@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
@@ -24,7 +23,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
 import com.example.catalist.presentation.theme.CatalistTheme
 
@@ -32,11 +30,13 @@ import com.example.catalist.presentation.theme.CatalistTheme
 fun CatListItem(
     modifier: Modifier = Modifier,
     state: CatListItemState,
+
 ) {
 
-    Column {
+    Column(
+        modifier = modifier,
+    ) {
         Row(
-            modifier = modifier,
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -48,7 +48,7 @@ fun CatListItem(
             Text(
                 text = state.alternativeRaces,
                 style = MaterialTheme.typography.bodyLarge,
-                color = Color.LightGray,
+                color = Color.Gray,
                 maxLines = 2,
             )
         }
