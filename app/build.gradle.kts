@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     kotlin("plugin.serialization") version "2.1.20"
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -51,6 +52,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.ui.text.google.fonts)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -65,11 +67,21 @@ dependencies {
     implementation(libs.ktor.serialization.kotlinx.json)
 
     implementation(libs.coil.compose)
-    implementation(libs.coil.network.okhttp)
     implementation(libs.koin.androidx.compose)
+    implementation(libs.coil.network.ktor3)
+
+
+
 
     implementation(libs.kotlinx.serialization.json)
     implementation(project.dependencies.platform(libs.koin.bom))
     implementation(libs.koin.core)
 
+    implementation(libs.androidx.datastore.preferences)
+
+    implementation(libs.androidx.room.runtime)
+
+    ksp(libs.androidx.room.compiler)
+
+    implementation(libs.androidx.room.ktx)
 }

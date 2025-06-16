@@ -1,9 +1,9 @@
 package com.example.catalist.presentation.screens.details
 
 data class DetailsState(
-    val imageUrl: String = "",
-    val imageRatio: Float = 1f,
+    val id: String = "",
     val name: String = "",
+    val image : Image = Image(),
     val description: String = "",
     val origin: String = "",
     val temperament: List<String> = listOf(),
@@ -13,4 +13,9 @@ data class DetailsState(
     val isRare: Boolean = true,
     val wikiUrl: String = "",
     val isLoading: Boolean = false
+)
+
+data class Image(
+    val url: String = "",
+    val aspectRatio: Float = 1f
 )

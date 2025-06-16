@@ -1,9 +1,12 @@
-package com.example.catalist.data.model
+package com.example.catalist.data.local
 
-import kotlinx.serialization.Serializable
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 
-@Serializable
-data class CatListResponseItemDto(
+@Entity
+data class CatInfoEntity(
+    @PrimaryKey
+    val id: String,
     val adaptability: Int? = null,
     val affection_level: Int? = null,
     val alt_names: String? = null,
@@ -21,7 +24,6 @@ data class CatListResponseItemDto(
     val hairless: Int? = null,
     val health_issues: Int? = null,
     val hypoallergenic: Int? = null,
-    val id: String? = null,
     val indoor: Int? = null,
     val intelligence: Int? = null,
     val lap: Int? = null,
@@ -41,7 +43,8 @@ data class CatListResponseItemDto(
     val vcahospitals_url: String? = null,
     val vetstreet_url: String? = null,
     val vocalisation: Int? = null,
-    val weight: WeightDto? = null,
+    val weightImperial: String? =null,
+    val weightMetric: String? = null,
+    val wikipedia_url: String? = null,
 
-    val wikipedia_url: String? = null
 )

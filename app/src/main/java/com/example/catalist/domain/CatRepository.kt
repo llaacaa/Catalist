@@ -12,4 +12,6 @@ interface CatRepository {
     suspend fun getBreedBy(id: String): Result<CatListResponseItemDto>
 
     suspend fun getCatImageById(id: String): Result<List<ImageResponseDtoItem>>
+
+    suspend fun getCatImagesFor(id: String): Result<List<ImageResponseDtoItem>>
 }

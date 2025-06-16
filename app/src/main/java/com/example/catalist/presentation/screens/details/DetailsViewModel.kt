@@ -10,12 +10,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 class DetailsViewModel(
     private val repo: CatRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-
     private val _state = MutableStateFlow(DetailsState())
     val state = _state.asStateFlow()
 
@@ -35,7 +35,6 @@ class DetailsViewModel(
             val detailsResponse = repo.getBreedBy(id)
             val imageResponse = repo.getCatImageById(id)
 
-
             detailsResponse.fold(
                 onSuccess = {
                     _state.value = it.toDetails()
@@ -47,14 +46,17 @@ class DetailsViewModel(
 
             imageResponse.fold(
                 onSuccess = {
+
+                    println("alooooo $it")
                     val imageItem = it.firstOrNull() ?: return@launch
                     _state.value = _state.value.copy(
-                        imageUrl = imageItem.url ?: "",
-                        imageRatio = imageItem.width.toFloat() / imageItem.height.toFloat()
+                        image = Image(
+                            url = imageItem.url.also { println("Aloooooo $it") },
+                            aspectRatio = imageItem.width.toFloat() / imageItem.height.toFloat()
+                        )
                     )
                 },
                 onFailure = {
-                    _channel.send(Unit)
                 }
             )
 
@@ -91,6 +93,7 @@ private fun CatListResponseItemDto.toDetails(): DetailsState {
         .associate { it.first to it.second }
 
     return DetailsState(
+        id = this.id ?: UUID.randomUUID().toString(),
         name = this.name ?: "Name not found",
         description = this.description ?: "Description not found",
         origin = this.origin ?: "Origin not found",
@@ -100,7 +103,5 @@ private fun CatListResponseItemDto.toDetails(): DetailsState {
         behavior = map,
         isRare = rare == 0,
         wikiUrl = this.wikipedia_url ?: ""
-    ).also {
-        println("DetailsState: $it")
-    }
+    )
 }
