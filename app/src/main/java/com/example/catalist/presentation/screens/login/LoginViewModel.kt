@@ -3,6 +3,7 @@ package com.example.catalist.presentation.screens.login
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.catalist.data.login.UserData
 import com.example.catalist.domain.LoginRepository
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,6 +27,16 @@ class LoginViewModel(
             is LoginAction.OnLogin -> {
                 viewModelScope.launch {
                     if (state.value.canLogIn) {
+
+                        loginRepository.setUserData(
+                            UserData(
+                                firstName = state.value.name,
+                                lastName  = state.value.lastName,
+                                nickname  = state.value.nickname,
+                                email     = state.value.email
+                            )
+                        )
+
                         loginRepository.setLoginStatus(true)
                         _channel.send(LoginEvent.OnSuccessfulLogin)
                         return@launch

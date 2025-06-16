@@ -22,7 +22,6 @@ object KtorFactory {
                 json(
                     json = Json {
                         ignoreUnknownKeys = true
-                        isLenient = true
                     }
                 )
             }

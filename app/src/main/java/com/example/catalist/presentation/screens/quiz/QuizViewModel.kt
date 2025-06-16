@@ -2,13 +2,20 @@ package com.example.catalist.presentation.screens.quiz
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.catalist.data.result.QuizResult
 import com.example.catalist.domain.CatRepository
+import com.example.catalist.domain.LeaderBoardRepository
+import com.example.catalist.domain.LoginRepository
+import com.example.catalist.domain.ResultRepository
 import com.example.catalist.presentation.screens.details.Image
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.random.Random
@@ -17,6 +24,10 @@ private const val QUESTIONS_COUNT = 20
 
 class QuizViewModel(
     private val catRepository: CatRepository,
+    private val loginRepository: LoginRepository,
+    private val resultRepository: ResultRepository,
+    private val leaderBoardRepository: LeaderBoardRepository
+
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(QuizState())
@@ -25,7 +36,11 @@ class QuizViewModel(
     private var currentQuestionNumber = 0
     private var questions: List<QuizQuestion> = emptyList()
 
-    private val numberOfCorrectQuestions = MutableStateFlow(0)
+    private var numberOfCorrectQuestions = 0
+
+    private val _effect = Channel<QuizEvent>()
+    val effect = _effect.receiveAsFlow()
+
 
     init {
 
@@ -156,37 +171,129 @@ class QuizViewModel(
         while (true) {
             emit(time--)
             delay(1000L)
+            if (time < 0) {
+                break
+            }
         }
     }
 
     fun onAction(action: QuizAction) {
         when (action) {
-            QuizAction.OnDialogDismiss -> {
+            is QuizAction.OnDialogDismiss -> {
+                if (!_state.value.terminateQuizCheck) {
+                    // nije prekinio
 
-            }
+                    viewModelScope.launch {
+                        val userData = loginRepository.getUserData().first()
+                        println(userData)
 
-            is QuizAction.OnOptionClicked -> {
-                currentQuestionNumber++
-                _state.update { it.copy(
-                    currentQuestion = questions[currentQuestionNumber],
-                    currentQuestionNumber = currentQuestionNumber
-                ) }
 
-                val selectedOption = action.option
+                        val timeLeftInSeconds = _state.value.timer.split(":").let { parts ->
+                            val minutes = parts[0].toIntOrNull() ?: 0
+                            val seconds = parts.getOrNull(1)?.toIntOrNull() ?: 0
+                            minutes * 60 + seconds
+                        }
 
-                val current = _state.value.currentQuestion
-                val isCorrect = selectedOption == current.correctAnswer
+                        val points: Double = _state.value.numberOfCorrectQuestions * 2.5 *
+                                (1 + (timeLeftInSeconds + 120) / 300.0)
+                        resultRepository.saveQuizResult(QuizResult(
+                            points,
+                            System.currentTimeMillis(),
+                            null
+                        ))
+                    }
 
-                if (isCorrect) {
-                    numberOfCorrectQuestions.update { it + 1 }
+
+
+                }
+
+
+                viewModelScope.launch {
+                    _effect.send(QuizEvent.OnQuizCompleted)
                 }
             }
 
-            QuizAction.OnQuizQuitClick -> {
+            is QuizAction.OnOptionClicked -> {
+                val currentState = _state.value
+                val currentQuestion = currentState.currentQuestion
+                val selectedOption = action.option
+                val isCorrect = selectedOption == currentQuestion.correctAnswer
 
+                val updatedCorrectCount = if (isCorrect) {
+                    currentState.numberOfCorrectQuestions + 1
+                } else {
+                    currentState.numberOfCorrectQuestions
+                }
+
+                val isLastQuestion = currentState.currentQuestionNumber + 1 >= questions.size
+
+                if (isLastQuestion) {
+                    _state.update {
+                        it.copy(
+                            numberOfCorrectQuestions = updatedCorrectCount,
+                            showResultDialog = true
+                        )
+                    }
+                } else {
+                    val nextQuestionNumber = currentState.currentQuestionNumber + 1
+                    _state.update {
+                        it.copy(
+                            numberOfCorrectQuestions = updatedCorrectCount,
+                            currentQuestionNumber = nextQuestionNumber,
+                            currentQuestion = questions[nextQuestionNumber]
+                        )
+                    }
+                }
             }
 
-            QuizAction.OnTimeRunOut -> {
+
+            is QuizAction.OnQuizQuitClick -> {
+                _state.update { it.copy(terminateQuizCheck = true) }
+            }
+
+            is QuizAction.OnContinueQuiz -> {
+                _state.update { it.copy(terminateQuizCheck = false) }
+            }
+
+            is QuizAction.OnTimeRunOut -> {
+                //Ipak necu iskoristiti jer tamjer zaustavljam nakom 5 minuta i cekiram da li je tajmer == 0:00
+            }
+
+            is QuizAction.OnShareResultClick -> {
+                _state.update { it.copy(isShareEnabled = false) }
+
+                viewModelScope.launch {
+                    val userData = loginRepository.getUserData().first()
+                    println(userData)
+
+
+                    val timeLeftInSeconds = _state.value.timer.split(":").let { parts ->
+                        val minutes = parts[0].toIntOrNull() ?: 0
+                        val seconds = parts.getOrNull(1)?.toIntOrNull() ?: 0
+                        minutes * 60 + seconds
+                    }
+
+                    val points: Double = _state.value.numberOfCorrectQuestions * 2.5 *
+                            (1 + (timeLeftInSeconds + 120) / 300.0)
+
+
+                    val resultResponse = leaderBoardRepository.sendResult(userData.nickname, points).getOrNull()
+
+                    if (resultResponse == null) {
+//                        _effect.send(QuizEvent.OnError("Failed to send result"))
+                        return@launch
+                    }
+
+                    resultRepository.saveQuizResult(QuizResult(
+                        resultResponse.result.result,
+                        resultResponse.result.createdAt,
+                        resultResponse.ranking
+                    ))
+
+                    _effect.send(
+                        QuizEvent.OnNavigateToLeaderboard
+                    )
+                }
 
             }
         }

@@ -5,4 +5,6 @@ sealed interface QuizAction {
     data object OnTimeRunOut : QuizAction
     data object OnQuizQuitClick : QuizAction
     data object OnDialogDismiss : QuizAction
+    data object OnShareResultClick: QuizAction
+    data object OnContinueQuiz : QuizAction
 }

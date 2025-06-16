@@ -35,14 +35,17 @@ import com.example.catalist.presentation.screens.details.DetailsScreen
 import com.example.catalist.presentation.screens.details.DetailsViewModel
 import com.example.catalist.presentation.screens.gallery.GalleryScreen
 import com.example.catalist.presentation.screens.gallery.GalleryViewModel
-import com.example.catalist.presentation.screens.leader_board.LeaderBoardScreen
-import com.example.catalist.presentation.screens.leader_board.LeaderBoardViewModel
+import com.example.catalist.presentation.screens.leadeboard.LeaderBoardScreen
+import com.example.catalist.presentation.screens.leadeboard.LeaderBoardViewModel
 import com.example.catalist.presentation.screens.list.ListAction
 import com.example.catalist.presentation.screens.list.ListScreen
 import com.example.catalist.presentation.screens.list.ListViewModel
 import com.example.catalist.presentation.screens.login.LoginEvent
 import com.example.catalist.presentation.screens.login.LoginScreen
 import com.example.catalist.presentation.screens.login.LoginViewModel
+import com.example.catalist.presentation.screens.profile.ProfileScreen
+import com.example.catalist.presentation.screens.profile.ProfileViewModel
+import com.example.catalist.presentation.screens.quiz.QuizEvent
 import com.example.catalist.presentation.screens.quiz.QuizScreen
 import com.example.catalist.presentation.screens.quiz.QuizViewModel
 import com.example.catalist.presentation.theme.CatalistTheme
@@ -298,8 +301,7 @@ class MainActivity : ComponentActivity() {
                                     val state by viewModel.state.collectAsState()
                                     LeaderBoardScreen(
                                         state = state,
-                                        modifier = Modifier
-                                            .fillMaxSize()
+                                        modifier = Modifier.fillMaxSize()
                                     )
                                 }
 
@@ -334,7 +336,40 @@ class MainActivity : ComponentActivity() {
                                         modifier = Modifier
                                             .fillMaxSize()
                                     )
+
+                                    LaunchedEffect(key1 = Unit) {
+                                        viewModel.effect.collectLatest { event ->
+                                            when (event) {
+                                                is QuizEvent.OnQuizCompleted -> {
+                                                    navController.navigate(Route.Home)
+                                                }
+
+                                                is QuizEvent.OnQuizError -> TODO()
+
+                                                is QuizEvent.OnNavigateToLeaderboard -> {
+                                                     navController.navigate(Route.LeaderBoard) {
+                                                        popUpTo(Route.Quiz) {
+                                                            inclusive = true
+                                                        }
+                                                     }
+
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
+
+                                composable<Route.Profile> {
+                                    val viewModel: ProfileViewModel = koinViewModel()
+                                    val state by viewModel.state.collectAsState()
+
+
+                                    ProfileScreen(
+                                        state = state,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                }
+
                             }
                         }
                     }

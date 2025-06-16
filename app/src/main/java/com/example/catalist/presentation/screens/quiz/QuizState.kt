@@ -6,7 +6,11 @@ data class QuizState(
     val currentQuestionNumber: Int = 0,
     val currentQuestion: QuizQuestion = QuizQuestion(),
     val isLoading: Boolean = true,
-    val timer: String = ""
+    val timer: String = "",
+    val numberOfCorrectQuestions: Int = 0,
+    val showResultDialog: Boolean = false,
+    val isShareEnabled: Boolean = true,
+    val terminateQuizCheck: Boolean = false
 )
 
 data class QuizQuestion(
